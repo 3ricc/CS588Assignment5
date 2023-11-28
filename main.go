@@ -4,13 +4,22 @@ import (
     "fmt"
     "log"
     "database/sql"
-    //"encoding/json"
+    "encoding/json"
     "os"
     "net/http"
+    //"context"
     _ "github.com/lib/pq"
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
-    _ "github.com/google/go-github/v56/github"
+    //"github.com/google/go-github/v56/github"
+    "io/ioutil"
+    
 )
+
+type GitHubIssueStruct []struct {
+	Title                      string `json:"title"`
+    IssueID                    int    `json:"id"`
+	Creation                   string `json:"created_at"`
+}
 
 func main() {
     connectionName := "cs588assignment5-406403:us-central1:mypostgres"
@@ -49,25 +58,54 @@ func main() {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 	}()
 
-    //collectGithubData(db)
+    collectGithubData(db)
 
 
 }
 
-// func collectGithubData (db *sql.DB) error {
+func collectGithubData (db *sql.DB) error {
 
-//     client := github.NewClient(nil).WithAuthToken("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")
+    // drop_table := `drop table if exists prometheus_issues`
 
-//     drop_table := `drop table if exists prometheus_issues`
+	// _, err := db.Exec(drop_table)
+	// if err != nil {
+	// 	panic(err)
+	// }
+    // create_table := `CREATE TABLE IF NOT EXISTS "prometheus_issues" (
+    //                     "title"  VARCHAR(255),
+    //                     "id"        INT,
+    //                     "authorID"  INT,
+    //                     "creationDate"  VARCHAR(255),
+    //                     PRIMARY KEY("id")
+    //                 );`
 
-// 	_, err := db.Exec(drop_table)
-// 	if err != nil {
-// 		panic(err)
-// 	}
 
-//     create_table := `CREATE TABLE IF NOT EXISTS "prometheus_issues" `
 
-// }
+    req, err := http.Get("https://api.github.com/repos/microsoft/typescript/issues")
+    if err != nil {
+		panic(err)
+	}
+
+    body, _ := ioutil.ReadAll(req.Body)
+	var prometheuslist GitHubIssueStruct
+	json.Unmarshal(body, &prometheuslist)
+
+    for i:= 0; i < len(prometheuslist); i++ {
+        var issue_name = prometheuslist[i].Title
+        var creationDate = prometheuslist[i].Creation
+        var issue_id = prometheuslist[i].IssueID
+
+        fmt.Printf(issue_name)
+        fmt.Printf(creationDate)
+        fmt.Printf(":%s", issue_id)
+
+        //sql := `INSERT INTO prometheus_issues ("issue name", "author", "creationDate")`
+
+    }
+
+    return nil
+
+}
 
 
 // func collectStackOverflowData (db *sql.DB) error{
