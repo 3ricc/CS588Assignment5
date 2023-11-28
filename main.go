@@ -76,6 +76,13 @@ func main() {
 	if port == "" {
         port = "8080"
 	}
+    
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("Hello, world!"))
+    })
+	go func() {
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	}()
 
     // for {
     //     //GitHub Data
