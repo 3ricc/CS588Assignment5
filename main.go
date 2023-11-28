@@ -7,6 +7,7 @@ import (
     "encoding/json"
     "os"
     "net/http"
+    "time"
     //"context"
     _ "github.com/lib/pq"
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
@@ -58,13 +59,17 @@ func main() {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 	}()
 
-    collectPrometheusData(db)
-    collectSeleniumData(db)
-    collectOpenAIData(db)
-    collectDockerData(db)
-    collectMilvusData(db)
-    collectGoData(db)
-
+    for {
+        collectPrometheusData(db)
+        collectSeleniumData(db)
+        collectOpenAIData(db)
+        collectDockerData(db)
+        collectMilvusData(db)
+        collectGoData(db)
+        time.Sleep(24 * time.Hour)
+    }
+    
+    
 
 }
 
