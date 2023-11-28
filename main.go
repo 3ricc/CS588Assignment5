@@ -7,10 +7,13 @@ import (
     "encoding/json"
     "os"
     "net/http"
-    "time"
+    //"time"
     _ "github.com/lib/pq"
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
     "io/ioutil"
+    "github.com/prometheus/client_golang/prometheus"
+    "github.com/prometheus/client_golang/prometheus/promauto"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
     
 )
 
@@ -27,6 +30,21 @@ type StackOverflowPosts struct{
         Title string `json:"title"`
     } `json:"items"`
 }
+
+var apiCallsMade = promauto.NewCounter(
+    prometheus.CounterOpts{
+        Name: "api_calls_made",
+        Help: "Number of API calls made by application",
+    },
+)
+
+var dataCollectionCounter = promauto.NewCounter(
+    prometheus.CounterOpts{
+        Name: "data_collected",
+        Help: "Amount of data collected per second (per json entry)",
+    },
+)
+
 
 func main() {
     connectionName := "cs588assignment5-406403:us-central1:mypostgres"
@@ -65,24 +83,42 @@ func main() {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 	}()
 
-    for {
-        //GitHub Data
-        collectPrometheusData(db)
-        collectSeleniumData(db)
-        collectOpenAIData(db)
-        collectDockerData(db)
-        collectMilvusData(db)
-        collectGoData(db)
+    // for {
+    //     //GitHub Data
+    //     collectPrometheusData(db)
+    //     collectSeleniumData(db)
+    //     collectOpenAIData(db)
+    //     collectDockerData(db)
+    //     collectMilvusData(db)
+    //     collectGoData(db)
 
-        //StackOverflowData
-        collectPrometheusStack(db)
-        collectSeleniumStack(db)
-        collectOpenaiPosts(db)
-        collectDockerPosts(db)
-        collectMilvusPosts(db)
-        collectGoPosts(db)
-        time.Sleep(24 * time.Hour)
-    }
+    //     //StackOverflowData
+    //     collectPrometheusStack(db)
+    //     collectSeleniumStack(db)
+    //     collectOpenaiPosts(db)
+    //     collectDockerPosts(db)
+    //     collectMilvusPosts(db)
+    //     collectGoPosts(db)
+    //     time.Sleep(24 * time.Hour)
+    // }
+
+    collectPrometheusData(db)
+    collectSeleniumData(db)
+    collectOpenAIData(db)
+    collectDockerData(db)
+    collectMilvusData(db)
+    collectGoData(db)
+    
+    //StackOverflowData
+    collectPrometheusStack(db)
+    collectSeleniumStack(db)
+    collectOpenaiPosts(db)
+    collectDockerPosts(db)
+    collectMilvusPosts(db)
+    collectGoPosts(db)
+
+    http.Handle("/metrics", promhttp.Handler())
+    http.ListenAndServe(":2112", nil)
     
 
 }
@@ -108,6 +144,7 @@ func collectPrometheusData (db *sql.DB) error {
 	}
 
     req, err := http.Get("https://api.github.com/repos/prometheus/prometheus/issues")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -117,6 +154,7 @@ func collectPrometheusData (db *sql.DB) error {
 	json.Unmarshal(body, &prometheuslist)
 
     for i:= 0; i < len(prometheuslist); i++ {
+        dataCollectionCounter.Inc()
         var issue_name = prometheuslist[i].Title
         var creationDate = prometheuslist[i].Creation
         var issue_id = prometheuslist[i].IssueID
@@ -157,6 +195,7 @@ func collectSeleniumData (db *sql.DB) error {
 	}
 
     req, err := http.Get("https://api.github.com/repos/seleniumhq/selenium/issues")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -166,6 +205,7 @@ func collectSeleniumData (db *sql.DB) error {
 	json.Unmarshal(body, &seleniumlist)
 
     for i:= 0; i < len(seleniumlist); i++ {
+        dataCollectionCounter.Inc()
         var issue_name = seleniumlist[i].Title
         var creationDate = seleniumlist[i].Creation
         var issue_id = seleniumlist[i].IssueID
@@ -206,15 +246,17 @@ func collectOpenAIData (db *sql.DB) error {
 	}
 
     req, err := http.Get("https://api.github.com/repos/openai/openai-python/issues")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
-
+    
     body, _ := ioutil.ReadAll(req.Body)
 	var openailist GitHubIssueStruct
 	json.Unmarshal(body, &openailist)
 
     for i:= 0; i < len(openailist); i++ {
+        dataCollectionCounter.Inc()
         var issue_name = openailist[i].Title
         var creationDate = openailist[i].Creation
         var issue_id = openailist[i].IssueID
@@ -255,6 +297,7 @@ func collectDockerData (db *sql.DB) error {
 	}
 
     req, err := http.Get("https://api.github.com/repos/docker/cli/issues")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -264,6 +307,7 @@ func collectDockerData (db *sql.DB) error {
 	json.Unmarshal(body, &dockerlist)
 
     for i:= 0; i < len(dockerlist); i++ {
+        dataCollectionCounter.Inc()
         var issue_name = dockerlist[i].Title
         var creationDate = dockerlist[i].Creation
         var issue_id = dockerlist[i].IssueID
@@ -304,6 +348,7 @@ func collectMilvusData (db *sql.DB) error {
 	}
 
     req, err := http.Get("https://api.github.com/repos/milvus-io/milvus/issues")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -313,6 +358,7 @@ func collectMilvusData (db *sql.DB) error {
 	json.Unmarshal(body, &milvuslist)
 
     for i:= 0; i < len(milvuslist); i++ {
+        dataCollectionCounter.Inc()
         var issue_name = milvuslist[i].Title
         var creationDate = milvuslist[i].Creation
         var issue_id = milvuslist[i].IssueID
@@ -353,6 +399,7 @@ func collectGoData (db *sql.DB) error {
 	}
 
     req, err := http.Get("https://api.github.com/repos/golang/go/issues")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -362,6 +409,7 @@ func collectGoData (db *sql.DB) error {
 	json.Unmarshal(body, &golist)
 
     for i:= 0; i < len(golist); i++ {
+        dataCollectionCounter.Inc()
         var issue_name = golist[i].Title
         var creationDate = golist[i].Creation
         var issue_id = golist[i].IssueID
@@ -401,6 +449,7 @@ func collectPrometheusStack (db *sql.DB) error{
 	}
 
     req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=prometheus&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -410,6 +459,7 @@ func collectPrometheusStack (db *sql.DB) error{
 	json.Unmarshal(body, &promStackList)
 
     for i := 0; i < len(promStackList.Items); i++{
+        dataCollectionCounter.Inc()
         var question_name = promStackList.Items[i].Title
         var creation_date = promStackList.Items[i].Creation
         var question_id = promStackList.Items[i].QuestionID
@@ -450,6 +500,7 @@ func collectSeleniumStack (db *sql.DB) error{
 	}
 
     req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=selenium&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -459,6 +510,7 @@ func collectSeleniumStack (db *sql.DB) error{
 	json.Unmarshal(body, &seleniumStackList)
 
     for i := 0; i < len(seleniumStackList.Items); i++{
+        dataCollectionCounter.Inc()
         var question_name = seleniumStackList.Items[i].Title
         var creation_date = seleniumStackList.Items[i].Creation
         var question_id = seleniumStackList.Items[i].QuestionID
@@ -499,6 +551,7 @@ func collectOpenaiPosts (db *sql.DB) error{
 	}
 
     req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=openai-api&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -508,6 +561,7 @@ func collectOpenaiPosts (db *sql.DB) error{
 	json.Unmarshal(body, &openStackList)
 
     for i := 0; i < len(openStackList.Items); i++{
+        dataCollectionCounter.Inc()
         var question_name = openStackList.Items[i].Title
         var creation_date = openStackList.Items[i].Creation
         var question_id = openStackList.Items[i].QuestionID
@@ -548,6 +602,7 @@ func collectDockerPosts (db *sql.DB) error{
 	}
 
     req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=docker&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -557,6 +612,7 @@ func collectDockerPosts (db *sql.DB) error{
 	json.Unmarshal(body, &dockerStackList)
 
     for i := 0; i < len(dockerStackList.Items); i++{
+        dataCollectionCounter.Inc()
         var question_name = dockerStackList.Items[i].Title
         var creation_date = dockerStackList.Items[i].Creation
         var question_id = dockerStackList.Items[i].QuestionID
@@ -597,6 +653,7 @@ func collectMilvusPosts (db *sql.DB) error{
 	}
 
     req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=milvus&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -606,6 +663,7 @@ func collectMilvusPosts (db *sql.DB) error{
 	json.Unmarshal(body, &milvusStackList)
 
     for i := 0; i < len(milvusStackList.Items); i++{
+        dataCollectionCounter.Inc()
         var question_name = milvusStackList.Items[i].Title
         var creation_date = milvusStackList.Items[i].Creation
         var question_id = milvusStackList.Items[i].QuestionID
@@ -646,6 +704,7 @@ func collectGoPosts (db *sql.DB) error{
 	}
 
     req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=golang&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    apiCallsMade.Inc()
     if err != nil {
 		panic(err)
 	}
@@ -655,6 +714,7 @@ func collectGoPosts (db *sql.DB) error{
 	json.Unmarshal(body, &goStackList)
 
     for i := 0; i < len(goStackList.Items); i++{
+        dataCollectionCounter.Inc()
         var question_name = goStackList.Items[i].Title
         var creation_date = goStackList.Items[i].Creation
         var question_id = goStackList.Items[i].QuestionID
