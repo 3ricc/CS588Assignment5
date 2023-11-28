@@ -56,6 +56,8 @@ func main() {
 
 // func collectGithubData (db *sql.DB) error {
 
+//     client := github.NewClient(nil).WithAuthToken("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")
+
 //     drop_table := `drop table if exists prometheus_issues`
 
 // 	_, err := db.Exec(drop_table)
