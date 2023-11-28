@@ -49,15 +49,15 @@ func main() {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 	}()
 
-    collectGithubData(db)
+    //collectGithubData(db)
 
 
 }
 
-func collectGithubData (db *sql.DB) error {
+// func collectGithubData (db *sql.DB) error {
 
-}
+// }
 
-func collectStackOverflowData (db *sql.DB) error{
+// func collectStackOverflowData (db *sql.DB) error{
 
-}
+// }
