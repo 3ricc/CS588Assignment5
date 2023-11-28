@@ -76,7 +76,7 @@ func main() {
 	if port == "" {
         port = "8080"
 	}
-    
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         w.Write([]byte("Hello, world!"))
     })
@@ -449,7 +449,7 @@ func collectPrometheusStack (db *sql.DB) error{
 		panic(_err)
 	}
 
-    req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=prometheus&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&intitle=prometheus&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
     apiCallsMade.Inc()
     if err != nil {
 		panic(err)
@@ -704,7 +704,7 @@ func collectGoPosts (db *sql.DB) error{
 		panic(_err)
 	}
 
-    req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&tagged=golang&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
+    req, err := http.Get("https://api.stackexchange.com/2.3/search?order=desc&sort=activity&intitle=golang&site=stackoverflow&key=c5hL2NXUJ*1TIoPb27Qudg((")
     apiCallsMade.Inc()
     if err != nil {
 		panic(err)
