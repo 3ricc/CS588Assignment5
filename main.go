@@ -56,6 +56,15 @@ func main() {
 
 // func collectGithubData (db *sql.DB) error {
 
+//     drop_table := `drop table if exists prometheus_issues`
+
+// 	_, err := db.Exec(drop_table)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+//     create_table := `CREATE TABLE IF NOT EXISTS "prometheus_issues" `
+
 // }
 
 
