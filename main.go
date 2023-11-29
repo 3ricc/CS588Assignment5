@@ -7,7 +7,7 @@ import (
     "encoding/json"
     "os"
     "net/http"
-    //"time"
+    "time"
     _ "github.com/lib/pq"
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
     "io/ioutil"
@@ -44,7 +44,6 @@ var dataCollectionCounter = promauto.NewCounter(
         Help: "Amount of data collected per second (per json entry)",
     },
 )
-
 
 func main() {
     connectionName := "cs588assignment5-406403:us-central1:mypostgres"
@@ -102,6 +101,7 @@ func main() {
     //     collectGoPosts(db)
     //     time.Sleep(24 * time.Hour)
     // }
+    startTime := time.Now()
 
     collectPrometheusData(db)
     collectSeleniumData(db)
@@ -117,6 +117,17 @@ func main() {
     collectDockerPosts(db)
     collectMilvusPosts(db)
     collectGoPosts(db)
+
+    endTime := time.Now()
+
+    executionDuration := endTime.Sub(startTime)
+
+    executionTime := float64(executionDuration.Seconds())
+
+    // fmt.Println("API Calls Per Second: %f", apiCallsPerSecond)
+    // fmt.Println("Data Collected Per Second: %f", dataCollectedPerSecond)
+
+    fmt.Println("Execution Time: ", executionTime)
 
     http.Handle("/metrics", promhttp.Handler())
     http.ListenAndServe(":2112", nil)
