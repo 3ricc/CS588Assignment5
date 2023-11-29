@@ -127,7 +127,7 @@ func main() {
     // fmt.Println("API Calls Per Second: %f", apiCallsPerSecond)
     // fmt.Println("Data Collected Per Second: %f", dataCollectedPerSecond)
 
-    fmt.Println("Execution Time: ", executionTime)
+    fmt.Println("Execution Time in seconds: ", executionTime)
 
     http.Handle("/metrics", promhttp.Handler())
     http.ListenAndServe(":2112", nil)
